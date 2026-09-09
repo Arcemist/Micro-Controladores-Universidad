@@ -7,9 +7,27 @@ enum Modo estado = AUTOMATICO;
 volatile byte retardo_pulso = 0;
 volatile bool encendido = false;
 
+// ISR es la macro para crear interrupciones
+// y INT0_vect es la señal de interrupcion creada en el Pin 2
+ISR(INT0_vect) {
+  if (retardo_pulso == 0) { // Esto sirve para asegurar pero conviene poner un capacitor igual
+    retardo_pulso = 2000;
+    encendido = !encendido;
+  }; 
+}
+
+ISR(INT1_vect) {
+  if (estado == AUTOMATICO) {
+    estado = MANUAL;
+  } else {
+    estado = AUTOMATICO;
+  };
+}
+
 void setup() {
-  DDRD = (0<<PD2) | (1<<PD5); // Pin 2 entrada y Pin 5 salida
-  PORTD = (1<<PD2) | (0<<PD5); // Pin 2 en PULLUP y Pin 5 en LOW
+  DDRD &= (0<<PD2) | (0<<PD3); 
+  DDRD |= (1<<PD5);
+  PORTD = (1<<PD2) | (1<<PD3) | (1<<PD5); // Pin 2 en PULLUP y Pin 5 en LOW
 
   cli(); // Desabilitar las interupciones globales
 
@@ -21,7 +39,8 @@ void setup() {
   * INT1 habilita las interrupciones para el Pin 3
   */
 
-  EIMSK = (1<<INT0);
+  EIFR = (1 << INTF0) | (1 << INTF1);
+  EIMSK = (1<<INT0) | (1<<INT1);
 
 
   /* EICRA:
@@ -39,7 +58,8 @@ void setup() {
   * En este caso vamos a utilizar el pin 2 en flancos de subida asi que seria '11' ISC0
   */
 
-  EICRA = (1<<ISC01) | (1<<ISC00);
+  EICRA = (1<<ISC01) | (1<<ISC11);
+  EICRA = (0<<ISC00) | (0<<ISC10);
 
   sei(); // Volver a habilitar las interrupciones globales
 
@@ -66,7 +86,7 @@ void setup() {
   */
 
   //ADMUX = 010?0101;
-  ADMUX = (0<<REF1) | (1<<REF0) | (0<<ADLAR) | (0<<MUX3) | (1<<MUX2) | (0<<MUX1) | (1<<MUX0);
+  ADMUX = (0<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (0<<MUX3) | (0<<MUX2) | (1<<MUX1) | (1<<MUX0);
 
 
   /* ADCSRA:
@@ -92,39 +112,39 @@ void setup() {
   */
 
   //ADCSRA = 10???110;
-  ADCSRA = (1<<ADEN) | (0<<ADCS) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
+  ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
+
+  Serial.begin(9600);
 }
 
 void loop() {
-  PORTD = ((encendido == true)<<PD5);
+  if (encendido == true) {
+    PORTD |= (1<<PD5);
+  } else {
+    PORTD &= (0<<PD5);
+  };
 
-  if (retardo_pulso > 1) {
+  if (retardo_pulso > 0) {
     retardo_pulso--;
   };
 
   if (estado == AUTOMATICO) {
-    if (lectura_analoga() > /* VALOR QUE TODAVIA NO SE */ ) {
+    if (lectura_analoga() > 70 ) {
         encendido = false;
     } else {
         encendido = true;
     };
   };
+
+  Serial.println(lectura_analoga());
 }
 
-// ISR es la macro para crear interrupciones
-// y INT0_vect es la señal de interrupcion creada en el Pin 2
-ISR(INT0_vect) {
-  estado = MANUAL;
-  if (retardo_pulso == 0) { // Esto sirve para asegurar pero conviene poner un capacitor igual
-    retardo_pulso = 500;
-    encendido = !encendido;
-  }; 
-}
+
 
 int lectura_analoga() {
-  ADCSRA = (1<<ADCS); // Empezar la lectura
+  ADCSRA |= (1<<ADSC); // Empezar la lectura
 
-  while (ADCSRA & (1<<ADCS)) {}; // Esperar a que termine la lectura
+  while (ADCSRA & (1<<ADSC)) {}; // Esperar a que termine la lectura
 
   return ADC; // Retornar el valor de 10 bits
 }
