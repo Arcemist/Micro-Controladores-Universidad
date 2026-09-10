@@ -10,6 +10,7 @@ volatile bool encendido = false;
 // ISR es la macro para crear interrupciones
 // y INT0_vect es la señal de interrupcion creada en el Pin 2
 ISR(INT0_vect) {
+  Serial.println("boton manual");
   if (retardo_pulso == 0) { // Esto sirve para asegurar pero conviene poner un capacitor igual
     retardo_pulso = 2000;
     encendido = !encendido;
@@ -17,6 +18,7 @@ ISR(INT0_vect) {
 }
 
 ISR(INT1_vect) {
+  Serial.println("boton modo");
   if (estado == AUTOMATICO) {
     estado = MANUAL;
   } else {
@@ -25,9 +27,9 @@ ISR(INT1_vect) {
 }
 
 void setup() {
-  DDRD &= (0<<PD2) | (0<<PD3); 
+  DDRD &= ~((1<<PD2) | (1<<PD3)); 
   DDRD |= (1<<PD5);
-  PORTD = (1<<PD2) | (1<<PD3) | (1<<PD5); // Pin 2 en PULLUP y Pin 5 en LOW
+  PORTD |= (1<<PD2) | (1<<PD3) | (1<<PD5); // Pin 2 en PULLUP y Pin 5 en LOW
 
   cli(); // Desabilitar las interupciones globales
 
@@ -39,8 +41,8 @@ void setup() {
   * INT1 habilita las interrupciones para el Pin 3
   */
 
-  EIFR = (1 << INTF0) | (1 << INTF1);
-  EIMSK = (1<<INT0) | (1<<INT1);
+  EIFR |= (1 << INTF0) | (1 << INTF1);
+  EIMSK |= (1<<INT0) | (1<<INT1);
 
 
   /* EICRA:
@@ -59,7 +61,8 @@ void setup() {
   */
 
   EICRA = (1<<ISC01) | (1<<ISC11);
-  EICRA = (0<<ISC00) | (0<<ISC10);
+  //EICRA &= ~((1<<ISC00) | (1<<ISC10));
+  //EICRA = 00001010;
 
   sei(); // Volver a habilitar las interrupciones globales
 
@@ -129,14 +132,14 @@ void loop() {
   };
 
   if (estado == AUTOMATICO) {
-    if (lectura_analoga() > 70 ) {
+    if (lectura_analoga() > 120 ) {
         encendido = false;
     } else {
         encendido = true;
     };
   };
 
-  Serial.println(lectura_analoga());
+  //Serial.println(lectura_analoga());
 }
 
 
