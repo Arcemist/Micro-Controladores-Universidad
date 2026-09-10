@@ -27,10 +27,10 @@ ISR(INT1_vect) {
 void setup() {
   Serial.begin(9600); //Para identificar el valor en el momento de la presentacion
 
-  DDRD &= ~(1<<DDD2); 
-  DDRD &= ~(1<<DDD3); 
-  DDRB |= (1<<DDB5);
-  PORTD = (1<<PD2) | (1<<PD3); // Pin 2 en PULLUP y Pin 5 en LOW
+  DDRD &= ~(1<<DDD2); // Pin 2 entrada
+  DDRD &= ~(1<<DDD3);  // Pin 3 entrada
+  DDRB |= (1<<DDB5); // Pin 13 Salida
+  PORTD = (1<<PD2) | (1<<PD3); // Pin 2 y 3 en PULLUP
 
   cli(); // Desabilitar las interupciones globales
 
@@ -58,7 +58,7 @@ void setup() {
   * Los ISC1* son para configurar el modo de interrupcion para INT1 que en esta placa es el pin 3
   * y los ISC0* son para INT0 que es el pin 2
   *
-  * En este caso vamos a utilizar el pin 2 en flancos de subida asi que seria '11' ISC0
+  * En este caso vamos a utilizar el pin 2 y 3 en flancos de bajada asi que seria '10'
   */
 
   EICRA |= (1<<ISC01) | (1<<ISC11);
@@ -85,10 +85,9 @@ void setup() {
   * mismo tiempo
   *
   * Y los registros MUX deciden cual entrada ADC 0-5 se esta utilizando
-  * en este caso '0101' para la entrada 5
+  * en este caso '0011' para la entrada A3
   */
 
-  //ADMUX = 010?0101;
   ADMUX = (0<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (0<<MUX3) | (0<<MUX2) | (1<<MUX1) | (1<<MUX0);
 
 
@@ -114,7 +113,6 @@ void setup() {
   * Aca se eligio 64 que corresponde a '110' porque es un valor mas o menos en el medio del rango.
   */
 
-  //ADCSRA = 10???110;
   ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
 
   
