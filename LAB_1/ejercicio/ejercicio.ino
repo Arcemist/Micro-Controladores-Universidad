@@ -10,7 +10,6 @@ volatile bool encendido = false;
 // ISR es la macro para crear interrupciones
 // y INT0_vect es la señal de interrupcion creada en el Pin 2
 ISR(INT0_vect) {
-  Serial.println("e");
   if (retardo_pulso == 0) { // Esto sirve para asegurar pero conviene poner un capacitor igual
     retardo_pulso = 500;
     encendido = !encendido;
@@ -18,7 +17,6 @@ ISR(INT0_vect) {
 }
 
 ISR(INT1_vect) {
-  Serial.println("boton modo");
   if (estado == AUTOMATICO) {
     estado = MANUAL;
   } else {
@@ -27,9 +25,10 @@ ISR(INT1_vect) {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); //Para identificar el valor en el momento de la presentacion
 
-  DDRD = 0000000; 
+  DDRD &= ~(1<<DDD2); 
+  DDRD &= ~(1<<DDD3); 
   DDRB |= (1<<DDB5);
   PORTD = (1<<PD2) | (1<<PD3); // Pin 2 en PULLUP y Pin 5 en LOW
 
