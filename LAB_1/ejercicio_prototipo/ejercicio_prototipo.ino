@@ -39,6 +39,7 @@ void loop() {
 
     if (analogRead(pin_analogo) > 100 ) {
         encendido = false;
+        Serial.println(analogRead(pin_analogo));
     } else {
         encendido = true;
     };
