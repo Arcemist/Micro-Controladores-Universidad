@@ -4,6 +4,19 @@ enum estados {
   Tibio,
   Caliente
 };
+volatile enum estados Estado;
+
+const byte umbral = 4;
+
+const byte Tmax_frio = 20 - umbral / 2;
+const byte Tmin_normal = 20 + umbral / 2;
+const byte Tmax_normal = 40 - umbral / 2;
+const byte Tmin_tibio = 40 + umbral / 2;
+const byte Tmax_tibio = 60 - umbral / 2;
+const byte Tmin_caliente = 60 + umbral / 2;
+
+const byte Reduccion = 40;
+volatile byte Reductor = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -55,11 +68,62 @@ void setup() {
   */
   ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
 
+
+  /* Configuracion Timer 1
+  * Se Cambian los directorios de configuracion (TCCR1 A y B) para elegir el
+  * modo CTC y el preescaler de 256.
+  *
+  * Despues se asigna el valor por defecto al tope del contador A del Timer 1.
+  * En este caso es un valor calculado para un periodo de 10s tomando en
+  * cuenta el Preescaler de 256 y un Reductor de 40.
+  *
+  * Y por ultimo se habilitan las interrupciones por el canal A del timer 1
+  */
+  TCCR1A = 0;
+  TCCR1B = (1<<WGM12) | (1<<CS12);
+  OCR1A = 15625;
+  TIMSK1 = (1<<OCIE1A);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
+  // Falta la parte de recibir comando por serial
 
+  switch (Estado) {
+    case Frio:
+
+    break;
+
+    case Normal:
+
+    break;
+
+    case Tibio:
+
+    break;
+
+    case Caliente:
+
+    break;
+  }
+}
+
+ISR(TIMER1_COMPA_vect) {
+  Reductor += 1;
+
+  if (Reductor < Reduccion / 4) {
+    // Parte del led que usa reloj
+  };
+
+  if (Reductor >= Reduccion) {
+    Reductor = 0;
+
+    int Lectura = Leer_Temperatura();
+    if ((0 < Lectura) && (Tmax_frio > Lectura))                   { Estado = Frio; }
+    else if ((Tmin_normal < Lectura) && (Tmax_normal > Lectura))  { Estado = Normal; }
+    else if ((Tmin_tibio < Lectura) && (Tmax_tibio > Lectura))    { Estado = Tibio; }
+    else if (Tmin_caliente < Lectura)                             { Estado = Caliente; }
+  };
 }
 
 int Leer_Temperatura() {
