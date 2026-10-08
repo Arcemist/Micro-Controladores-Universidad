@@ -18,8 +18,16 @@ const byte Tmin_caliente = 60 + umbral / 2;
 const byte Reduccion = 40;
 volatile byte Reductor = 0;
 
+bool led_timer;
+
 void setup() {
   Serial.begin(9600);
+
+
+  DDRD = (1<<DDD5) | (1<<DDD6);
+
+  //PORTD |= (1<<PD5);
+  //PORTD &= ~(1 << PD5);
 
 
   /* ADMUX:
@@ -86,24 +94,70 @@ void setup() {
 }
 
 void loop() {
-  
+
   // Falta la parte de recibir comando por serial
+  if (Serial.available() > 0) {
+    int lectura_serial = Serial.read();
+
+    switch (lectura_serial) {
+      case '2':
+        OCR1A = 3125;
+      break;
+
+      case '4':
+        OCR1A = 3125 * 2;
+      break;
+
+      case '6':
+        OCR1A = 3125 * 3;
+      break;
+
+      case '8':
+        OCR1A = 3125 * 4;
+      break;
+
+      case '10':
+        OCR1A = 3125 * 5;
+      break;
+
+      case '12':
+        OCR1A = 3125 * 6;
+      break;
+
+      case '14':
+        OCR1A = 3125 * 7;
+      break;
+
+      case '16':
+        OCR1A = 3125 * 8;
+      break;
+    };
+  };
 
   switch (Estado) {
     case Frio:
-
+      PORTD &= ~(1 << PD5);
+      PORTD &= ~(1 << PD6);
     break;
 
     case Normal:
-
+      PORTD |= (1<<PD5);
+      PORTD &= ~(1 << PD6);
     break;
 
     case Tibio:
+      PORTD |= (1<<PD5);
 
+      if (led_timer) {
+        PORTD |= (1<<PD6);
+      } else {
+        PORTD &= ~(1 << PD6);
+      };
     break;
 
     case Caliente:
-
+      PORTD |= (1<<PD5);
+      PORTD |= (1<<PD6);
     break;
   }
 }
@@ -112,7 +166,9 @@ ISR(TIMER1_COMPA_vect) {
   Reductor += 1;
 
   if (Reductor < Reduccion / 4) {
-    // Parte del led que usa reloj
+    led_timer = true;
+  } else {
+    led_timer = false;
   };
 
   if (Reductor >= Reduccion) {
@@ -123,6 +179,25 @@ ISR(TIMER1_COMPA_vect) {
     else if ((Tmin_normal < Lectura) && (Tmax_normal > Lectura))  { Estado = Normal; }
     else if ((Tmin_tibio < Lectura) && (Tmax_tibio > Lectura))    { Estado = Tibio; }
     else if (Tmin_caliente < Lectura)                             { Estado = Caliente; }
+
+    Serial.print("La temperatura actual es: ");
+    Serial.println(Lectura);
+
+    Serial.print("El Led Verde esta: ");
+    if (((PIND & (1 << PIND5)) >> PIND5) == 1) {
+      Serial.println("Encendido");
+    } else {
+      Serial.println("Apagado");
+    };
+
+    Serial.print("El Led Rojo esta: ");
+    if (((PIND & (1 << PIND6)) >> PIND6) == 1) {
+      Serial.println("Encendido");
+    } else {
+      Serial.println("Apagado");
+    };
+
+    Serial.println("");
   };
 }
 
@@ -136,5 +211,5 @@ int Leer_Temperatura() {
 
   sei();
 
-  return ADC / 10.0; // Retornar el valor de 10 bits
+  return ADC; // Retornar el valor de 10 bits
 }
