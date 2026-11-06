@@ -44,3 +44,16 @@ inline void Inicializar_ADC() {
   */
   ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
 }
+
+int Leer_Temperatura() {
+
+  cli();
+
+  ADCSRA |= (1<<ADSC); // Empezar la lectura
+
+  while (ADCSRA & (1<<ADSC)) {}; // Esperar a que termine la lectura
+
+  sei();
+
+  return ADC; // Retornar el valor de 10 bits
+}
