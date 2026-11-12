@@ -10,19 +10,19 @@ struct Motor D1 = {
   .T_min = 30,
   .T_max = 60,
   .Duty_min = 1.5,
-  .Duty_max = 50,           // Teniamos miedo de romper el motorsito
-  .Duty_Cycle_Reg = &OCR1A
+  .Duty_max = 100,           // Teniamos miedo de romper el motorsito
+  .Duty_Cycle_Reg = &OCR1B
 };
 
 struct Motor D2 = {
   .T_min = 40,
   .T_max = 60,
-  .Duty_min = 59.5,
+  .Duty_min = 0,
   .Duty_max = 100,
-  .Duty_Cycle_Reg = &OCR1B
+  .Duty_Cycle_Reg = &OCR1A
 };
 
-struct Motor *Motores[2] = { &D1, &D2 };
+struct Motor *Motores[] = { &D1, &D2 };
 
 inline void Inicializar_Motores() {
   /* Configuracion del Timer 1
@@ -49,6 +49,8 @@ inline void Inicializar_Motores() {
   TCCR1A |= (1 << COM1A1) | (1 << COM1B1);
 }
 
+
+
 void Configurar_Duty_Cycle_Manual(float Porcentaje, byte n) {
   const Motor *Dn = Motores[n - 1];
 
@@ -58,7 +60,10 @@ void Configurar_Duty_Cycle_Manual(float Porcentaje, byte n) {
   *(Dn->Duty_Cycle_Reg) = floor(ICR1 * (Porcentaje / 100.0));
 }
 
-inline void Configurar_Duty_Cycle_Automatico(int Lectura) {
+
+
+
+inline void Configurar_Duty_Cycle_Automatico(float Lectura) {
 
   for (int i = 0; i < sizeof(Motores); i++) {
     const Motor *Dn = Motores[i];
@@ -75,7 +80,7 @@ inline void Configurar_Duty_Cycle_Automatico(int Lectura) {
 
       const float Duty_Cycle_Correspondiente = Dn->Duty_min + (Dn->Duty_max - Dn->Duty_min) * Porcentaje_Activacion;
 
-      *(Dn->Duty_Cycle_Reg) = Floor(ICR1 * (Duty_Cycle_Correspondiente / 100));
+      *(Dn->Duty_Cycle_Reg) = floor(ICR1 * (Duty_Cycle_Correspondiente / 100));
 
     } else {
 

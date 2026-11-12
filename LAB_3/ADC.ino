@@ -10,7 +10,7 @@ inline void Inicializar_ADC() {
   * MUX0
   * 
   * Los valores de REF determinan que referencia utilizara el ADC
-  * En este caso se usa '01' para que use AVCC que es el voltaje de operacion
+  * En este caso se usa '11' para que use referencia interna que es 1.1v
   *
   * El valor de ADLAR determina como se guarda la lectura en los registros ADCH y ADCL
   * en este caso se utiliza '0' porque permite usar 'ADC' para leer los 2 registros al
@@ -33,19 +33,17 @@ inline void Inicializar_ADC() {
   *
   * ADEN abilita el uso del ADC
   *
-  * ADCS empieza una lectura cuando es puesto en 1 y se vuelve a 0 cuando termina
-  *
   * ADATE, ADIF y ADIE son para abilitar funciones que no precisamos utilizar en esto
   *
   * ADPS es para elegir el factor de reduccion del reloj del microcontrolador al reloj del modulo ADC
   * numeros mas chicos permiten mediciones mas rapidas pero imprecisas, mientras que numeros mas grandes
   * permiten mediciones mas precisas pero mas lentas.
-  * Aca se eligio 64 que corresponde a '110' porque es un valor mas o menos en el medio del rango.
+  * Aca se eligio 128 que corresponde a '111' porque es un valor mas o menos en el medio del rango.
   */
-  ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+  ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 }
 
-int Leer_Temperatura() {
+float Leer_Temperatura() {
   const float factor_conversion = 1.1 / 10.24;
 
   cli();
