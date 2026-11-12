@@ -20,6 +20,12 @@ void loop() {
       case 'T':
         Ajustar_Reduccion(argumento);
       break;
+      case 'V':
+        Configurar_Duty_Cycle_Manual(argumento, 1);
+      break;
+      case 'P':
+        Configurar_Duty_Cycle_Manual(argumento, 2);
+      break;
     };
   };
 }

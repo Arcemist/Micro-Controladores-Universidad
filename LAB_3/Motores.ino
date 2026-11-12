@@ -1,7 +1,7 @@
 struct Motor {
   const byte T_min;
   const byte T_max;
-  int *Duty_Cycle_Reg;
+  volatile uint16_t *Duty_Cycle_Reg;
 };
 
 struct Motor D1 = {
@@ -35,19 +35,19 @@ inline void Inicializar_Motores() {
   ICR1 = 1600;
 
   // Inicializar Duty Cicles en 0
-  OCR1A = 0;
-  OCR1B = 0;
+  OCR1A = 500;
+  OCR1B = 1000;
 
   // Ligar los pines 9 y 10 a A y B
   DDRB |= (1 << PB1) | (1 << PB2);
   TCCR1A |= (1 << COM1A1) | (1 << COM1B1);
 }
 
-inline void Configurar_Duty_Cycle_Manual(float Porcentaje, byte n) {
-  if ( Porcentaje < 0.0 ) { Porcentaje = 0.0; }
-  if ( Porcentaje > 100.0 ) { Porcentaje = 100.0; }
+void Configurar_Duty_Cycle_Manual(float Porcentaje, byte n) {
+  if ( Porcentaje < 0.0 ) { Porcentaje = -Porcentaje; };
+  if ( Porcentaje > 100.0 ) { Porcentaje = 100.0; };
 
-  *Motores[n + 1]->Duty_Cycle_Reg = floor( ICR1 * Porcentaje );
+ *(Motores[n - 1]->Duty_Cycle_Reg)  = floor( ICR1 * (Porcentaje / 100) );
 }
 
 inline void Configurar_Duty_Cycle_Automatico(int Lectura, byte n) {

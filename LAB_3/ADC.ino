@@ -19,7 +19,7 @@ inline void Inicializar_ADC() {
   * Y los registros MUX deciden cual entrada ADC 0-5 se esta utilizando
   * en este caso '0011' para la entrada A3
   */
-  ADMUX = (0<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (0<<MUX3) | (0<<MUX2) | (1<<MUX1) | (1<<MUX0);
+  ADMUX = (1<<REFS1) | (1<<REFS0) | (0<<ADLAR) | (0<<MUX3) | (0<<MUX2) | (1<<MUX1) | (1<<MUX0);
 
   /* ADCSRA:
   * ADEN
@@ -42,10 +42,11 @@ inline void Inicializar_ADC() {
   * permiten mediciones mas precisas pero mas lentas.
   * Aca se eligio 64 que corresponde a '110' porque es un valor mas o menos en el medio del rango.
   */
-  ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0);
+  ADCSRA = (1<<ADEN) | (0<<ADSC) | (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 }
 
 int Leer_Temperatura() {
+  const float factor_conversion = 1.1 / 10.24;
 
   cli();
 
@@ -55,5 +56,5 @@ int Leer_Temperatura() {
 
   sei();
 
-  return ADC; // Retornar el valor de 10 bits
+  return ADC * factor_conversion; // Retornar el valor de 10 bits
 }
