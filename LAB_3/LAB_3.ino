@@ -8,7 +8,12 @@ void setup() {
   
 }
 
+bool Control_Manual_Activado = false;
 void loop() {
+  if (!Control_Manual_Activado) {
+    Configurar_Duty_Cycle_Automatico(Leer_Temperatura());
+  };
+
   if (Serial.available() > 0) {
     String lectura_serial = Serial.readStringUntil('\n');
     
